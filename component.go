@@ -36,15 +36,15 @@ func (r RenderFunc) Render() UI {
 }
 
 func (r RenderFunc) Update() {
-	dispatch(func() {
-		if !r.Mounted() {
-			return
-		}
-		println("update")
-		if err := r.updateRoot(); err != nil {
-			panic(err)
-		}
-	})
+	// dispatch(func() {
+	if !r.Mounted() {
+		return
+	}
+	println("update")
+	if err := r.updateRoot(); err != nil {
+		panic(err)
+	}
+	// })
 }
 
 func (r RenderFunc) name() string {
@@ -63,7 +63,12 @@ func (r RenderFunc) setSelf(n UI) {
 	if n != nil {
 		println("xnew render context")
 		c := NewRenderContext()
-		c.this = n.(RenderFunc)
+		switch d := n.(type) {
+		case RenderFunc:
+			c.this = d
+		default:
+			panic("unknown type")
+		}
 		return
 	}
 
@@ -109,11 +114,11 @@ func (r RenderFunc) mount() error {
 
 func (r RenderFunc) dismount() {
 	c := getCurrentContext()
-	for _, v := range c.effectsUnsub {
-		if v != nil {
-			v()
-		}
-	}
+	// for _, v := range c.effectsUnsub {
+	// 	if v != nil {
+	// 		v()
+	// 	}
+	// }
 	dismount(c.root)
 	delete(contextMap, c.contextMapIndex)
 	contextIndex--
@@ -234,7 +239,7 @@ func (c *RenderContext) UseState(initial interface{}) (func() interface{}, func(
 		c.values[i] = initial
 	}
 	return func() interface{} {
-			return c.values[i].(interface{})
+			return c.values[i]
 		}, func(v interface{}) {
 			c.values[i] = v
 			// special check so that the backend doesn't crash
@@ -247,7 +252,11 @@ func (c *RenderContext) UseState(initial interface{}) (func() interface{}, func(
 func (c *RenderContext) UseInt(initial int) (func() int, func(v int)) {
 	getState, setState := c.UseState(initial)
 	return func() int {
-			return getState().(int)
+			v, exist := getState().(int)
+			if !exist {
+				panic("v is not int")
+			}
+			return v
 		}, func(v int) {
 			setState(v)
 		}

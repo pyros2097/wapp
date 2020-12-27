@@ -15,6 +15,9 @@ func Counter(c *RenderContext) UI {
 			Text("Counter"),
 		),
 		Row(
+			Svg(ViewBox("0 0 56 18"),
+				SvgText(X("0"), Y("15"), Text("123")),
+			),
 			Div(
 				Text("-"),
 			),

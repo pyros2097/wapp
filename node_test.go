@@ -1,128 +1,120 @@
 package app
 
-import (
-	"fmt"
-	"testing"
+// func TestIsErrReplace(t *testing.T) {
+// 	utests := []struct {
+// 		scenario     string
+// 		err          error
+// 		isErrReplace bool
+// 	}{
+// 		{
+// 			scenario:     "error is a replace error",
+// 			err:          errors.New("test").Tag("replace", true),
+// 			isErrReplace: true,
+// 		},
+// 		{
+// 			scenario:     "error is not a replace error",
+// 			err:          errors.New("test").Tag("test", true),
+// 			isErrReplace: false,
+// 		},
+// 		{
+// 			scenario:     "standard error is not a replace error",
+// 			err:          fmt.Errorf("test"),
+// 			isErrReplace: false,
+// 		},
+// 		{
+// 			scenario:     "nil error is not a replace error",
+// 			err:          nil,
+// 			isErrReplace: false,
+// 		},
+// 	}
 
-	"github.com/pyros2097/wapp/errors"
-	"github.com/stretchr/testify/require"
-)
+// 	for _, u := range utests {
+// 		t.Run(u.scenario, func(t *testing.T) {
+// 			res := isErrReplace(u.err)
+// 			require.Equal(t, u.isErrReplace, res)
+// 		})
+// 	}
+// }
 
-func TestIsErrReplace(t *testing.T) {
-	utests := []struct {
-		scenario     string
-		err          error
-		isErrReplace bool
-	}{
-		{
-			scenario:     "error is a replace error",
-			err:          errors.New("test").Tag("replace", true),
-			isErrReplace: true,
-		},
-		{
-			scenario:     "error is not a replace error",
-			err:          errors.New("test").Tag("test", true),
-			isErrReplace: false,
-		},
-		{
-			scenario:     "standard error is not a replace error",
-			err:          fmt.Errorf("test"),
-			isErrReplace: false,
-		},
-		{
-			scenario:     "nil error is not a replace error",
-			err:          nil,
-			isErrReplace: false,
-		},
-	}
+// type mountTest struct {
+// 	scenario string
+// 	node     UI
+// }
 
-	for _, u := range utests {
-		t.Run(u.scenario, func(t *testing.T) {
-			res := isErrReplace(u.err)
-			require.Equal(t, u.isErrReplace, res)
-		})
-	}
-}
+// func testMountDismount(t *testing.T, utests []mountTest) {
+// 	for _, u := range utests {
+// 		t.Run(u.scenario, func(t *testing.T) {
+// 			testSkipNonWasm(t)
 
-type mountTest struct {
-	scenario string
-	node     UI
-}
+// 			n := u.node
+// 			err := mount(n)
+// 			require.NoError(t, err)
+// 			testMounted(t, n)
 
-func testMountDismount(t *testing.T, utests []mountTest) {
-	for _, u := range utests {
-		t.Run(u.scenario, func(t *testing.T) {
-			testSkipNonWasm(t)
+// 			dismount(u.node)
+// 			testDismounted(t, n)
+// 		})
+// 	}
+// }
 
-			n := u.node
-			err := mount(n)
-			require.NoError(t, err)
-			testMounted(t, n)
+// func testMounted(t *testing.T, n UI) {
+// 	require.NotNil(t, n.JSValue())
+// 	require.True(t, n.Mounted())
 
-			dismount(u.node)
-			testDismounted(t, n)
-		})
-	}
-}
+// 	// switch n.Kind() {
+// 	// case HTML, Component:
+// 	// 	require.NotNil(t, n.self())
+// 	// }
 
-func testMounted(t *testing.T, n UI) {
-	require.NotNil(t, n.JSValue())
-	require.True(t, n.Mounted())
+// 	for _, c := range n.children() {
+// 		require.Equal(t, n, c.parent())
+// 		testMounted(t, c)
+// 	}
+// }
 
-	// switch n.Kind() {
-	// case HTML, Component:
-	// 	require.NotNil(t, n.self())
-	// }
+// func testDismounted(t *testing.T, n UI) {
+// 	require.Nil(t, n.JSValue())
+// 	require.False(t, n.Mounted())
 
-	for _, c := range n.children() {
-		require.Equal(t, n, c.parent())
-		testMounted(t, c)
-	}
-}
+// 	// switch n.Kind() {
+// 	// case HTML, Component:
+// 	// 	require.Nil(t, n.self())
+// 	// }
 
-func testDismounted(t *testing.T, n UI) {
-	require.Nil(t, n.JSValue())
-	require.False(t, n.Mounted())
+// 	for _, c := range n.children() {
+// 		testDismounted(t, c)
+// 	}
+// }
 
-	// switch n.Kind() {
-	// case HTML, Component:
-	// 	require.Nil(t, n.self())
-	// }
+// type updateTest struct {
+// 	scenario   string
+// 	a          UI
+// 	b          UI
+// 	matches    []TestUIDescriptor
+// 	replaceErr bool
+// }
 
-	for _, c := range n.children() {
-		testDismounted(t, c)
-	}
-}
+// func testUpdate(t *testing.T, utests []updateTest) {
+// 	for _, u := range utests {
+// 		t.Run(u.scenario, func(t *testing.T) {
+// 			testSkipNonWasm(t)
 
-type updateTest struct {
-	scenario   string
-	a          UI
-	b          UI
-	matches    []TestUIDescriptor
-	replaceErr bool
-}
+// 			err := mount(u.a)
+// 			require.NoError(t, err)
+// 			defer dismount(u.a)
 
-func testUpdate(t *testing.T, utests []updateTest) {
-	for _, u := range utests {
-		t.Run(u.scenario, func(t *testing.T) {
-			testSkipNonWasm(t)
+// 			err = update(u.a, u.b)
+// 			if u.replaceErr {
+// 				require.Error(t, err)
+// 				require.True(t, isErrReplace(err))
+// 				return
+// 			}
 
-			err := mount(u.a)
-			require.NoError(t, err)
-			defer dismount(u.a)
+// 			require.NoError(t, err)
 
-			err = update(u.a, u.b)
-			if u.replaceErr {
-				require.Error(t, err)
-				require.True(t, isErrReplace(err))
-				return
-			}
-
-			require.NoError(t, err)
-
-			for _, d := range u.matches {
-				require.NoError(t, TestMatch(u.a, d))
-			}
-		})
-	}
-}
+// 			for _, d := range u.matches {
+// 				require.NoError(t, TestMatch(u.a, d))
+// 			}
+// 		})
+// 	}
+// }

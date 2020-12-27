@@ -8,8 +8,7 @@ import (
 )
 
 var (
-	dispatch Dispatcher = Dispatch
-	uiChan              = make(chan func(), 512)
+	uiChan = make(chan func(), 512)
 )
 
 type Context struct {
@@ -25,11 +24,6 @@ type Context struct {
 // Dispatcher is a function that executes the given function on the goroutine
 // dedicated to UI.
 type Dispatcher func(func())
-
-// Dispatch executes the given function on the UI goroutine.
-func Dispatch(f func()) {
-	uiChan <- f
-}
 
 func writeIndent(w io.Writer, indent int) {
 	for i := 0; i < indent*4; i++ {

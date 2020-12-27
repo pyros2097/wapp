@@ -16,7 +16,6 @@ package errors
 import (
 	"bytes"
 	"errors"
-	"fmt"
 	"reflect"
 	"sort"
 	"strings"
@@ -58,9 +57,9 @@ func New(v string) Error {
 
 // Newf returns an error with the given formatted description that can be
 // tagged.
-func Newf(format string, v ...interface{}) Error {
-	return New(fmt.Sprintf(format, v...))
-}
+// func Newf(format string, v ...interface{}) Error {
+// 	return New(fmt.Sprintf(format, v...))
+// }
 
 // Error is an error implementation that supports tagging and wrapping.
 type Error struct {
@@ -71,7 +70,7 @@ type Error struct {
 }
 
 // Tag sets the named tag with the given value.
-func (e Error) Tag(k string, v interface{}) Error {
+func (e Error) Tag(k string, v string) Error {
 	if e.tags == nil {
 		e.tags = make([]tag, 0, 8)
 	}
@@ -79,14 +78,7 @@ func (e Error) Tag(k string, v interface{}) Error {
 	if l := len(k); l > e.maxKeyLen {
 		e.maxKeyLen = l
 	}
-
-	switch v := v.(type) {
-	case string:
-		e.tags = append(e.tags, tag{key: k, value: v})
-
-	default:
-		e.tags = append(e.tags, tag{key: k, value: fmt.Sprintf("%+v", v)})
-	}
+	e.tags = append(e.tags, tag{key: k, value: v})
 
 	return e
 }

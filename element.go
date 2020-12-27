@@ -59,34 +59,6 @@ func (e *Element) children() []UI {
 	return e.body
 }
 
-func (e *Element) mount() error {
-	if e.Mounted() {
-		panic("mounting elem failed already mounted " + e.name())
-	}
-
-	v := js.Window.Get("document").Call("createElement", e.tag)
-	if !v.Truthy() {
-		panic("mounting component failed create javascript node returned nil " + e.name())
-	}
-	e.jsvalue = v
-
-	for k, v := range e.attrs {
-		e.setJsAttr(k, v)
-	}
-
-	for k, v := range e.events {
-		e.setJsEventHandler(k, v)
-	}
-
-	for _, c := range e.children() {
-		if err := e.appendChild(c, true); err != nil {
-			panic("mounting component failed appendChild " + e.name())
-		}
-	}
-
-	return nil
-}
-
 func (e *Element) dismount() {
 	for _, c := range e.children() {
 		dismount(c)
@@ -291,32 +263,6 @@ func (e *Element) setEventHandler(k string, h js.EventHandlerFunc) {
 	}
 
 	e.events[k] = js.NewEventHandler(k, h)
-}
-
-func (e *Element) setJsEventHandler(k string, h js.EventHandler) {
-	jshandler := js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-		dispatch(func() {
-			if !e.self().Mounted() {
-				return
-			}
-			e := js.Event{
-				Src:   this,
-				Value: args[0],
-			}
-			trackMousePosition(e)
-			h.Value(e)
-		})
-		return nil
-	})
-	h.JSvalue = jshandler
-	e.events[k] = h
-	e.JSValue().Call("addEventListener", k, jshandler)
-}
-
-func (e *Element) delJsEventHandler(k string, h js.EventHandler) {
-	e.JSValue().Call("removeEventListener", k, h.JSvalue)
-	h.JSvalue.Release()
-	delete(e.events, k)
 }
 
 func (e *Element) setBody(body []UI) {

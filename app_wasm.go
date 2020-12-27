@@ -37,9 +37,7 @@ func Run() {
 }
 
 func Reload() {
-	dispatch(func() {
-		js.Window.Location().Reload()
-	})
+	js.Window.Location().Reload()
 }
 
 func Route(path string, render RenderFunc) {

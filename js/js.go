@@ -1,9 +1,5 @@
 package js
 
-import (
-	"fmt"
-)
-
 // Type represents the JavaScript type of a Value.
 type Type int
 
@@ -19,7 +15,7 @@ const (
 	TypeFunction
 )
 
-// Wrapper is implemented by types that are backed by a JavaScript value.
+// Wrapper is implemented by types that are backed by a JavaScript value.type
 type Wrapper interface {
 	JSValue() Value
 }
@@ -139,16 +135,6 @@ func ValueOf(x interface{}) Value {
 	return valueOf(x)
 }
 
-// Func is the interface that describes a wrapped Go function to be called by
-// JavaScript.
-type Func interface {
-	Value
-
-	// Release frees up resources allocated for the function. The function must
-	// not be invoked after calling Release.
-	Release()
-}
-
 // FuncOf returns a wrapped function.
 //
 // Invoking the JavaScript function will synchronously call the Go function fn
@@ -165,9 +151,6 @@ type Func interface {
 //
 // Func.Release must be called to free up resources when the function will not
 // be used any more.
-func FuncOf(fn func(this Value, args []Value) interface{}) Func {
-	return funcOf(fn)
-}
 
 // BrowserWindow is the interface that describes the browser window.
 type BrowserWindow interface {
@@ -193,7 +176,7 @@ type BrowserWindow interface {
 	// AddEventListener subscribes a given handler to the specified event. It
 	// returns a function that must be called to unsubscribe the handler and
 	// release allocated resources.
-	AddEventListener(event string, h EventHandler) func()
+	// AddEventListener(event string, h EventHandler) func()
 
 	Location() Location
 }
@@ -231,24 +214,6 @@ func CopyBytesToJS(dst Value, src []byte) int {
 // EventHandler represents a function that can handle HTML events. They are
 // always called on the UI goroutine.
 type EventHandlerFunc func(e Event)
-
-type EventHandler struct {
-	Event   string
-	JSvalue Func
-	Value   EventHandlerFunc
-}
-
-func NewEventHandler(e string, v EventHandlerFunc) EventHandler {
-	return EventHandler{
-		Event: e,
-		Value: v,
-	}
-}
-
-func (h EventHandler) Equal(o EventHandler) bool {
-	return h.Event == o.Event &&
-		fmt.Sprintf("%p", h.Value) == fmt.Sprintf("%p", o.Value)
-}
 
 type Location struct {
 	value    Value

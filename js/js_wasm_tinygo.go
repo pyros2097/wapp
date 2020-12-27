@@ -1,5 +1,5 @@
 // +build wasm
-// +build !tinygo
+// +build tinygo
 
 package js
 
@@ -13,19 +13,9 @@ type value struct {
 	js.Value
 }
 
-// Func is the interface that describes a wrapped Go function to be called by
-// JavaScript.
-type Func interface {
-	Value
-
-	// Release frees up resources allocated for the function. The function must
-	// not be invoked after calling Release.
-	Release()
-}
-
 type EventHandler struct {
 	Event   string
-	JSvalue Func
+	JSvalue js.Func
 	Value   EventHandlerFunc
 }
 
@@ -100,9 +90,6 @@ func valueOf(x interface{}) Value {
 	case value:
 		x = t.Value
 
-	case function:
-		x = t.fn
-
 	case *browserWindow:
 		x = t.Value
 
@@ -111,31 +98,6 @@ func valueOf(x interface{}) Value {
 	}
 
 	return val(js.ValueOf(x))
-}
-
-type function struct {
-	value
-	fn js.Func
-}
-
-func (f function) Release() {
-	f.fn.Release()
-}
-
-func FuncOf(fn func(this Value, args []Value) interface{}) Func {
-	f := js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-		wargs := make([]Value, len(args))
-		for i, a := range args {
-			wargs[i] = val(a)
-		}
-
-		return fn(val(this), wargs)
-	})
-
-	return function{
-		value: value{Value: f.Value},
-		fn:    f,
-	}
 }
 
 type browserWindow struct {
@@ -190,13 +152,6 @@ func (w *browserWindow) ScrollToID(id string) {
 
 func (w *browserWindow) AddEventListener(event string, h EventHandler) func() {
 	panic("not implemented")
-	// callback := MakeJsEventHandler(body, h)
-	// w.Call("addEventListener", event, callback)
-
-	// return func() {
-	// 	w.Call("removeEventListener", event, callback)
-	// 	callback.Release()
-	// }
 }
 
 func (w *browserWindow) Location() *Location {
@@ -224,9 +179,6 @@ func val(v js.Value) Value {
 func jsval(v Value) js.Value {
 	switch v := v.(type) {
 	case value:
-		return v.Value
-
-	case function:
 		return v.Value
 
 	case *browserWindow:

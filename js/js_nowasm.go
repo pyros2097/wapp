@@ -1,10 +1,44 @@
 // +build !wasm
+// +build !tinygo
 
 package js
 
 var Window = &browserWindow{value: value{}}
 
 type value struct{}
+
+// Func is the interface that describes a wrapped Go function to be called by
+// JavaScript.
+type Func interface {
+	Value
+
+	// Release frees up resources allocated for the function. The function must
+	// not be invoked after calling Release.
+	Release()
+}
+
+type EventHandler struct {
+	Event   string
+	JSvalue Func
+	Value   EventHandlerFunc
+}
+
+func NewEventHandler(e string, v EventHandlerFunc) EventHandler {
+	return EventHandler{
+		Event: e,
+		Value: v,
+	}
+}
+
+func (h EventHandler) Equal(o EventHandler) bool {
+	return h.Event == o.Event
+	// h.Value == o.Value
+	// fmt.Sprintf("%p", h.Value) == fmt.Sprintf("%p", o.Value)
+}
+
+func NewValue(v interface{}) value {
+	return value{}
+}
 
 func (v value) Bool() bool {
 	panic("wasm required")
@@ -94,7 +128,7 @@ func valueOf(x interface{}) Value {
 	panic("wasm required")
 }
 
-func funcOf(fn func(this Value, args []Value) interface{}) Func {
+func FuncOf(fn func(this Value, args []Value) interface{}) Func {
 	panic("wasm required")
 }
 
@@ -122,7 +156,7 @@ func (w *browserWindow) ScrollToID(id string) {
 	panic("wasm required")
 }
 
-func (w *browserWindow) AddEventListener(event string, h EventHandler) func() {
+func (w *browserWindow) AddEventListener(event string, h EventHandlerFunc) func() {
 	panic("wasm required")
 }
 

@@ -1,6 +1,7 @@
 package app
 
 import (
+	"reflect"
 	"strconv"
 
 	"github.com/pyros2097/wapp/js"
@@ -144,7 +145,7 @@ func mergeAttributes(parent *Element, uis ...interface{}) {
 		case nil:
 			// dont need to add nil items
 		default:
-			panic("unknown type in render")
+			panic("unknown type in render: " + reflect.TypeOf(v).String())
 		}
 	}
 	parent.setBody(elems)
